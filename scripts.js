@@ -268,7 +268,7 @@ database.ref("posts").on("child_added", (snapshot) => {
   el.dataset.id = postId;
   el.innerHTML = `
   <div class="post-header">
-    <img src="${post.avatar || "../images/guy3.jpg"}" class="avatar" />
+    <img src="${post.avatar || "images/guy3.jpg"}" class="avatar" />
     <div class="user-info">
       <h4>
         <a href="#" class="profile-link"
@@ -276,7 +276,7 @@ database.ref("posts").on("child_added", (snapshot) => {
           data-age="21"
           data-gender="Male"
           data-bio="I am a graphics designer, and a game enthusiast, lets connect!"
-          data-avatar="../images/guy3.jpg">
+          data-avatar="images/guy3.jpg">
           Matthew
         </a>
       </h4>
