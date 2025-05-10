@@ -35,11 +35,31 @@ document.querySelector(".dropdown-toggle").addEventListener("click", () => {
     : "rotate(180deg)";
 });
 
+function attachDropdownToggle(el) {
+  const toggleBtn = el.querySelector(".menu-toggle");
+  const dropdown = el.querySelector(".menu-dropdown");
+
+  if (toggleBtn && dropdown && !toggleBtn.dataset.listenerAdded) {
+    toggleBtn.addEventListener("click", () => {
+      dropdown.classList.toggle("hidden");
+    });
+    toggleBtn.dataset.listenerAdded = "true";
+  }
+}
+
 // Post rendering
 function renderPosts(postsToRender) {
   const feed = document.querySelector(".feed");
   feed.innerHTML = "";
-  postsToRender.forEach((post) => feed.appendChild(post.element));
+  postsToRender.forEach((post) => {
+    feed.appendChild(post.element);
+    attachDropdownToggle(post.element);
+
+    const profileLink = post.element.querySelector(".profile-link");
+    if (profileLink) {
+      attachProfileModal(profileLink);
+    }
+  });
 }
 
 // Sorting
@@ -72,7 +92,12 @@ document.querySelector(".search-form").addEventListener("submit", (e) => {
   const filtered = allPosts.filter(({ data }) => {
     const title = data.title?.toLowerCase() || "";
     const desc = data.description?.toLowerCase() || "";
-    return title.includes(searchTerm) || desc.includes(searchTerm);
+    const name = data.name?.toLowerCase() || "";
+    return (
+      title.includes(searchTerm) ||
+      desc.includes(searchTerm) ||
+      name.includes(searchTerm)
+    );
   });
 
   renderPosts(filtered);
@@ -309,8 +334,10 @@ database.ref("posts").on("child_added", (snapshot) => {
 });
 
 // Include hardcoded posts in the sorting and search logic
-document.querySelectorAll(".post-card").forEach((el) => {
+document.querySelectorAll(".post-card").forEach((el, index) => {
   el.dataset.id = `hardcoded-${index}`;
+  const name = el.querySelector(".user-info h4")?.textContent.trim() || "";
+  const profileLink = el.querySelector(".profile-link");
 
   const likes = parseInt(el.querySelector(".like")?.textContent) || 0;
   const commentCount =
@@ -320,25 +347,22 @@ document.querySelectorAll(".post-card").forEach((el) => {
 
   allPosts.push({
     data: {
+      id: `hardcoded-${index}`,
       title,
       description,
+      name,
       likes,
       comments: new Array(commentCount).fill("comment"),
-      timestamp: Date.now() - Math.floor(Math.random() * 100000), // simulate some spread
+      timestamp: Date.now() - Math.floor(Math.random() * 100000),
+      shares: 0,
     },
     element: el,
   });
+
   attachDropdownToggle(el);
-});
 
-function attachDropdownToggle(el) {
-  const toggleBtn = el.querySelector(".menu-toggle");
-  const dropdown = el.querySelector(".menu-dropdown");
-
-  if (toggleBtn && dropdown && !toggleBtn.dataset.listenerAdded) {
-    toggleBtn.addEventListener("click", () => {
-      dropdown.classList.toggle("hidden");
-    });
-    toggleBtn.dataset.listenerAdded = "true";
+  // ✅ Attach modal listener
+  if (profileLink) {
+    attachProfileModal(profileLink);
   }
-}
+});
